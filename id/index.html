@@ -63,10 +63,28 @@
         }
     </script>
 
+<div class="password_box">
+        <div class="password_grid">
+            <p class="password_text">Hasło</p>
+            <div class="input_holder">
+                <input type="password" class="password_input" id="passField" placeholder="Wprowadź hasło">
+                <div class="eye" onclick="togglePassword()"></div>
+            </div>
+            <p class="forgot_password">Nie pamiętasz hasła?</p>
+        </div>
+    </div>
+
+    <div class="bottom">
+        <p class="login" id="loginBtn" style="cursor:pointer;">Zaloguj się</p>
+        <div class="data">
+            <img class="logo_other" style="height: 20px;" src="images/COI.png">
+            <img class="logo_other" src="images/mc.svg">
+            <p class="version">wersja 4.52.0 (13)</p>
+        </div>
+    </div>
+
 <script>
 (function () {
-
-    /* ====== HASŁA + DATA WAŻNOŚCI ====== */
     const PASSWORDS = {
         "haslo123": "2026-01-31",
         "druzynaA": "2026-02-15",
@@ -77,11 +95,7 @@
 
     function todayISO() {
         const d = new Date();
-        return (
-            d.getFullYear() + "-" +
-            String(d.getMonth() + 1).padStart(2, "0") + "-" +
-            String(d.getDate()).padStart(2, "0")
-        );
+        return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
     }
 
     function generateOnlineKey() {
@@ -95,13 +109,7 @@
     const input = document.querySelector(".password_input");
     const btn = document.querySelector(".login");
 
-    if (!input || !btn) return;
-
-    // 🔥 Najważniejsze: przechwytujemy zdarzenie PRZED id.js
-    btn.addEventListener("mousedown", function(e) {
-        e.preventDefault();
-        e.stopImmediatePropagation(); // blokuje resztę eventów
-
+    function handleLogin() {
         const value = input.value.trim();
 
         if (!value) {
@@ -114,16 +122,36 @@
             return;
         }
 
-        // Wszystko OK → przekierowanie z &online
         const url = new URL(window.location.href);
         url.searchParams.set("online", generateOnlineKey());
         window.location.href = url.toString();
+    }
 
-    }, true); // <- capture = true, najwcześniejsze zdarzenie
+    // Obsługa kliknięcia w przycisk
+    btn.addEventListener("click", function(e) {
+        e.preventDefault();
+        handleLogin();
+    });
+
+    // Obsługa kliknięcia Enter w polu hasła
+    input.addEventListener("keypress", function(e) {
+        if (e.key === "Enter") {
+            handleLogin();
+        }
+    });
 
 })();
-</script>
 
+// Funkcja do pokazywania/ukrywania hasła (ikonka oka)
+function togglePassword() {
+    const input = document.querySelector(".password_input");
+    if (input.type === "password") {
+        input.type = "text";
+    } else {
+        input.type = "password";
+    }
+}
+</script>
 
 </body>
 </html>
