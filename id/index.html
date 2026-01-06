@@ -66,7 +66,6 @@
 <script>
 (function () {
 
-    /* ====== HASŁA + DATA WAŻNOŚCI ====== */
     const PASSWORDS = {
         "haslo123": "2026-01-31",
         "druzynaA": "2026-02-15",
@@ -92,25 +91,15 @@
         return PASSWORDS[pass] && todayISO() <= PASSWORDS[pass];
     }
 
-    function redirectWithOnline() {
-        const url = new URL(window.location.href);
-        url.searchParams.set("online", generateOnlineKey());
-        window.location.href = url.toString();
-    }
-
     const input = document.querySelector(".password_input");
-    const oldBtn = document.querySelector(".login");
+    const btn = document.querySelector(".login");
 
-    if (!input || !oldBtn) return;
+    if (!input || !btn) return;
 
-    /* ====== USUNIĘCIE STARYCH EVENTÓW ====== */
-    const newBtn = oldBtn.cloneNode(true);
-    oldBtn.parentNode.replaceChild(newBtn, oldBtn);
-
-    /* ====== NASZA JEDYNA LOGIKA ====== */
-    newBtn.addEventListener("click", function (e) {
+    //  PRZECHWYT PRZED id.js
+    btn.addEventListener("mousedown", function (e) {
         e.preventDefault();
-        e.stopPropagation();
+        e.stopImmediatePropagation();
 
         const value = input.value.trim();
 
@@ -124,11 +113,15 @@
             return;
         }
 
-        redirectWithOnline();
-    });
+        const url = new URL(window.location.href);
+        url.searchParams.set("online", generateOnlineKey());
+        window.location.href = url.toString();
+
+    }, true); // ← CAPTURE = TRUE
 
 })();
 </script>
+
 
 </body>
 </html>
