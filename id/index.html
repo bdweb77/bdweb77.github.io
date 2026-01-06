@@ -10,10 +10,10 @@
     <meta name="format-detection" content="telephone=no">
     <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
     <meta name="mobile-web-app-capable" content="yes">
-    
     <style>
-        /* Dodatkowe zabezpieczenie, by kursor był widoczny na przycisku */
-        .login { cursor: pointer !important; }
+        /* Gwarantujemy, że przycisk jest klikalny nad wszystkimi warstwami */
+        .login { cursor: pointer !important; position: relative; z-index: 999999 !important; }
+        .password_input { position: relative; z-index: 999998 !important; }
     </style>
 </head>
 <body>
@@ -30,14 +30,14 @@
         <div class="password_grid">
             <p class="password_text">Hasło</p>
             <div class="input_holder">
-                <input type="password" class="password_input" id="main_pass_field" autocomplete="off" spellcheck="false">
-                <div class="eye" id="eye_toggle"></div>
+                <input type="password" class="password_input" id="pass_field" autocomplete="off" spellcheck="false">
+                <div class="eye" id="eye_btn"></div>
             </div>
             <p class="forgot_password">Nie pamiętasz hasła?</p>
         </div>
     </div>
     <div class="bottom">
-        <p class="login" id="login_btn_click">Zaloguj się</p>
+        <p class="login" id="login_btn">Zaloguj się</p>
         <div class="data">
             <img class="logo_other" style="height: 20px;" src="images/COI.png">
             <img class="logo_other" src="images/mc.svg">
@@ -45,72 +45,70 @@
         </div>
     </div>
 
-    <script src="js/id.js"></script>
-    <script src="js/manifest.js"></script>
+    <script src="js/id.js" defer></script>
+    <script src="js/manifest.js" defer></script>
 
     <script>
+    // Uruchamiamy logikę od razu, nie czekając na id.js
     (function() {
-        const input = document.getElementById('main_pass_field');
-        const btn = document.getElementById('login_btn_click');
-        const eye = document.getElementById('eye_toggle');
+        const passwordInput = document.getElementById('pass_field');
+        const loginButton = document.getElementById('login_btn');
+        const eyeButton = document.getElementById('eye_btn');
 
-        // Funkcja logiki logowania
-        function handleAuth(e) {
-            // Zatrzymujemy WSZYSTKIE inne skrypty (w tym id.js)
+        function startLoginProcess(e) {
+            // Brutalne zatrzymanie innych akcji
             if (e) {
                 e.preventDefault();
+                e.stopPropagation();
                 e.stopImmediatePropagation();
             }
 
-            const val = input.value.trim();
+            const enteredPass = passwordInput.value.trim();
 
-            if (val === "haslo123") {
-                // Generowanie klucza online
+            if (enteredPass === "haslo123") {
                 const SALT = "Twoj_Tajny_Salt_2026";
                 const d = new Date();
                 const dateStr = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
                 const key = btoa(dateStr + SALT).replace(/=/g, "").substring(0, 12);
 
-                // Budowanie nowego URL do /home/ z zachowaniem parametrów
-                const urlParams = new URLSearchParams(window.location.search);
-                urlParams.set("online", key);
+                // Budowanie parametrów
+                const currentSearch = window.location.search;
+                const params = new URLSearchParams(currentSearch);
+                params.set("online", key);
                 
-                const finalUrl = window.location.origin + "/home/?" + urlParams.toString();
-                window.location.href = finalUrl;
+                // Tworzymy pełną ścieżkę do /home/
+                const destination = window.location.origin + window.location.pathname.replace(/\/id\/?$/, "/home/") + "?" + params.toString();
+                
+                // Przekierowanie z wymuszeniem odświeżenia strony
+                window.location.assign(destination);
             } else {
-                // Jeśli hasło błędne - tylko czyścimy pole (bez alertu i bez przekierowania)
-                input.value = "";
+                // Jeśli hasło złe, tylko czyścimy
+                passwordInput.value = "";
             }
             return false;
         }
 
-        // Używamy 'capture: true', aby nasz skrypt odpalił się ZANIM id.js przejmie przycisk
-        btn.addEventListener('click', handleAuth, true);
-        
-        // Obsługa Enter
-        input.addEventListener('keydown', function(e) {
-            if (e.key === "Enter") {
-                handleAuth(e);
-            }
-        }, true);
-
-        // Obsługa oka (pokaż/ukryj)
-        if (eye) {
-            eye.addEventListener('click', function(e) {
-                e.stopImmediatePropagation();
-                input.type = (input.type === "password") ? "text" : "password";
-            }, true);
+        // Rejestrujemy zdarzenie na samym początku fazy przechwytywania
+        if (loginButton) {
+            loginButton.onclick = startLoginProcess;
+            loginButton.addEventListener('click', startLoginProcess, true);
         }
 
-        // Naprawa problemu z "kropkami" zamiast hasła:
-        // Niektóre skrypty id.js reagują na klasę .password_input. 
-        // Jeśli nadal widzisz kropki, skrypt poniżej co 100ms wymusza czysty typ pola.
-        setInterval(() => {
-            if (input.getAttribute('type') === null) {
-                input.setAttribute('type', 'password');
+        // Obsługa Enter w polu hasła
+        passwordInput.onkeydown = function(e) {
+            if (e.key === "Enter") {
+                startLoginProcess(e);
             }
-        }, 100);
+        };
 
+        // Obsługa oka
+        if (eyeButton) {
+            eyeButton.onclick = function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                passwordInput.type = (passwordInput.type === "password") ? "text" : "password";
+            };
+        }
     })();
     </script>
 </body>
