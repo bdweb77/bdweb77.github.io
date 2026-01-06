@@ -67,48 +67,56 @@
     </div>
 
     <script>
-        window.onload = function() {
-            const input = document.getElementById('secure_entry_2026');
-            const button = document.getElementById('loginBtn');
-            const eye = document.getElementById('eyeBtn');
+    window.onload = function() {
+        const input = document.getElementById('secure_entry_2026');
+        const button = document.getElementById('loginBtn');
+        const eye = document.getElementById('eyeBtn');
 
-            function sprawdzHaslo(e) {
-                if(e) {
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-                }
-
-                const wpisane = input.value.trim();
-
-                // Log do konsoli dla Ciebie
-                console.log("Wartość przechwycona: ", wpisane);
-
-                if (wpisane === "haslo123") {
-                    const SALT = "Twoj_Tajny_Salt_2026";
-                    const d = new Date();
-                    const dateStr = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-                    const key = btoa(dateStr + SALT).replace(/=/g, "").substring(0, 12);
-                    
-                    window.location.href = window.location.pathname + "?online=" + key;
-                } else {
-                    alert("Hasło nieprawidłowe.");
-                    input.value = "";
-                }
-                return false;
+        function sprawdzHaslo(e) {
+            if(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
             }
 
-            button.onclick = sprawdzHaslo;
-            
-            input.onkeydown = function(e) {
-                if (e.key === "Enter") sprawdzHaslo(e);
-            };
+            const wpisane = input.value.trim();
 
-            if (eye) {
-                eye.onclick = function() {
-                    input.type = (input.type === "password") ? "text" : "password";
-                };
+            if (wpisane === "haslo123") {
+                const SALT = "Twoj_Tajny_Salt_2026";
+                const d = new Date();
+                const dateStr = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+                
+                // Generujemy klucz online
+                const key = btoa(dateStr + SALT).replace(/=/g, "").substring(0, 12);
+                
+                // --- NAPRAWA LINKU ---
+                // Pobieramy obecny URL ze wszystkimi danymi (name, surname, image itp.)
+                const currentUrl = new URL(window.location.href);
+                
+                // Dodajemy lub aktualizujemy tylko parametr 'online'
+                currentUrl.searchParams.set("online", key);
+                
+                // Przekierowujemy na pełny link z zachowaniem wszystkich danych
+                window.location.href = currentUrl.toString();
+                
+            } else {
+                alert("Hasło nieprawidłowe.");
+                input.value = "";
             }
+            return false;
+        }
+
+        button.onclick = sprawdzHaslo;
+        
+        input.onkeydown = function(e) {
+            if (e.key === "Enter") sprawdzHaslo(e);
         };
+
+        if (eye) {
+            eye.onclick = function() {
+                input.type = (input.type === "password") ? "text" : "password";
+            };
+        }
+    };
     </script>
 
     <script src="js/id.js"></script>
