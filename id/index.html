@@ -63,60 +63,71 @@
         }
     </script>
 
-    <script>
-    (function () {
+<script>
+(function () {
 
-        /* ====== HASŁA + DATA WAŻNOŚCI ====== */
-        const PASSWORDS = {
-            "haslo123": "2026-01-31",
-            "druzynaA": "2026-02-15",
-            "test2026": "2026-12-31"
-        };
+    /* ====== HASŁA + DATA WAŻNOŚCI ====== */
+    const PASSWORDS = {
+        "haslo123": "2026-01-31",
+        "druzynaA": "2026-02-15",
+        "test2026": "2026-12-31"
+    };
 
-        const SALT = "Twoj_Tajny_Salt_2026";
+    const SALT = "Twoj_Tajny_Salt_2026";
 
-        function todayISO() {
-            const d = new Date();
-            return (
-                d.getFullYear() + "-" +
-                String(d.getMonth() + 1).padStart(2, "0") + "-" +
-                String(d.getDate()).padStart(2, "0")
-            );
+    function todayISO() {
+        const d = new Date();
+        return (
+            d.getFullYear() + "-" +
+            String(d.getMonth() + 1).padStart(2, "0") + "-" +
+            String(d.getDate()).padStart(2, "0")
+        );
+    }
+
+    function generateOnlineKey() {
+        return btoa(todayISO() + SALT).replace(/=/g, "").substring(0, 12);
+    }
+
+    function isValidPassword(pass) {
+        return PASSWORDS[pass] && todayISO() <= PASSWORDS[pass];
+    }
+
+    function redirectWithOnline() {
+        const url = new URL(window.location.href);
+        url.searchParams.set("online", generateOnlineKey());
+        window.location.href = url.toString();
+    }
+
+    const input = document.querySelector(".password_input");
+    const oldBtn = document.querySelector(".login");
+
+    if (!input || !oldBtn) return;
+
+    /* ====== USUNIĘCIE STARYCH EVENTÓW ====== */
+    const newBtn = oldBtn.cloneNode(true);
+    oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+
+    /* ====== NASZA JEDYNA LOGIKA ====== */
+    newBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const value = input.value.trim();
+
+        if (!value) {
+            alert("Wpisz hasło");
+            return;
         }
 
-        function generateOnlineKey() {
-            const today = todayISO();
-            return btoa(today + SALT).replace(/=/g, "").substring(0, 12);
+        if (!isValidPassword(value)) {
+            alert("Nieprawidłowe lub wygasłe hasło");
+            return;
         }
 
-        function isValidPassword(pass) {
-            if (!PASSWORDS[pass]) return false;
-            return todayISO() <= PASSWORDS[pass];
-        }
+        redirectWithOnline();
+    });
 
-        function redirectWithOnline() {
-            const url = new URL(window.location.href);
-            url.searchParams.set("online", generateOnlineKey());
-            window.location.href = url.toString();
-        }
-
-        /* ====== PODPIĘCIE POD INPUT I PRZYCISK ====== */
-        const input = document.querySelector(".password_input");
-        const loginBtn = document.querySelector(".login");
-
-        if (!input || !loginBtn) return;
-
-        loginBtn.addEventListener("click", () => {
-            const value = input.value.trim();
-
-            if (isValidPassword(value)) {
-                redirectWithOnline();
-            } else {
-                alert("Nieprawidłowe lub wygasłe hasło");
-            }
-        });
-
-    })();
+})();
 </script>
 
 </body>
