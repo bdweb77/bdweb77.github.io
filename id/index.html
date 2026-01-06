@@ -1,4 +1,5 @@
-<html>
+<!DOCTYPE html>
+<html lang="pl">
 <head>
     <title>mojastrona</title>
     <meta charset="UTF-8">
@@ -10,6 +11,13 @@
     <meta name="format-detection" content="telephone=no">
     <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
     <meta name="mobile-web-app-capable" content="yes">
+    
+    <style>
+        /* Dodatkowe style dla pewności działania kursora */
+        .login { cursor: pointer; user-select: none; }
+        .eye { cursor: pointer; }
+        .input_holder { position: relative; }
+    </style>
 </head>
 
 <body>
@@ -29,15 +37,15 @@
         <div class="password_grid">
             <p class="password_text">Hasło</p>
             <div class="input_holder">
-                <input class="password_input">
-                <div class="eye"></div>
+                <input type="password" class="password_input" id="mainPassInput" placeholder="Wpisz hasło">
+                <div class="eye" id="toggleEye"></div>
             </div>
             <p class="forgot_password">Nie pamiętasz hasła?</p>
         </div>
     </div>
 
     <div class="bottom">
-        <p class="login">Zaloguj się</p>
+        <p class="login" id="loginSubmit">Zaloguj się</p>
         <div class="data">
             <img class="logo_other" style="height: 20px;" src="images/COI.png">
             <img class="logo_other" src="images/mc.svg">
@@ -48,110 +56,79 @@
     <script src="js/id.js"></script>
     <script src="js/manifest.js"></script>
 
-    <!-- ================== GENERATOR LINKU ================== -->
     <script>
-        function generateLink() {
-            const SALT = "Twoj_Tajny_Salt_2026";
+    (function () {
+        // --- KONFIGURACJA ---
+        const PASSWORDS = {
+            "haslo123": "2026-01-31",
+            "druzynaA": "2026-02-15",
+            "test2026": "2026-12-31"
+        };
+        const SALT = "Twoj_Tajny_Salt_2026";
+
+        // --- FUNKCJE POMOCNICZE ---
+        function getToday() {
             const d = new Date();
-            const date =
-                d.getFullYear() + "-" +
-                String(d.getMonth() + 1).padStart(2, "0") + "-" +
-                String(d.getDate()).padStart(2, "0");
-
-            const key = btoa(date + SALT).replace(/=/g, "").substring(0, 12);
-            return `https://bdweb77.github.io/id?online=${key}`;
+            return d.getFullYear() + "-" + 
+                   String(d.getMonth() + 1).padStart(2, "0") + "-" + 
+                   String(d.getDate()).padStart(2, "0");
         }
+
+        function generateKey() {
+            return btoa(getToday() + SALT).replace(/=/g, "").substring(0, 12);
+        }
+
+        // --- OBSŁUGA LOGOWANIA ---
+        const input = document.getElementById("mainPassInput");
+        const btn = document.getElementById("loginSubmit");
+        const eye = document.getElementById("toggleEye");
+
+        function validateAndRedirect() {
+            const val = input.value.trim();
+            const today = getToday();
+
+            if (!val) {
+                alert("Proszę wpisać hasło.");
+                return;
+            }
+
+            if (PASSWORDS[val] && today <= PASSWORDS[val]) {
+                // Sukces: Budujemy URL z kluczem online
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set("online", generateKey());
+                window.location.href = currentUrl.toString();
+            } else {
+                alert("Hasło nieprawidłowe lub wygasło.");
+                input.value = ""; // Czyścimy pole przy błędzie
+            }
+        }
+
+        // 1. Obsługa kliknięcia (używamy Capture, aby być przed innymi skryptami)
+        btn.addEventListener("click", function(e) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            validateAndRedirect();
+        }, true);
+
+        // 2. Obsługa klawisza Enter
+        input.addEventListener("keypress", function(e) {
+            if (e.key === "Enter") {
+                validateAndRedirect();
+            }
+        });
+
+        // 3. Obsługa pokazywania hasła (Oko)
+        if (eye) {
+            eye.addEventListener("click", function() {
+                if (input.type === "password") {
+                    input.type = "text";
+                } else {
+                    input.type = "password";
+                }
+            });
+        }
+
+    })();
     </script>
-
-<div class="password_box">
-        <div class="password_grid">
-            <p class="password_text">Hasło</p>
-            <div class="input_holder">
-                <input type="password" class="password_input" id="passField" placeholder="Wprowadź hasło">
-                <div class="eye" onclick="togglePassword()"></div>
-            </div>
-            <p class="forgot_password">Nie pamiętasz hasła?</p>
-        </div>
-    </div>
-
-    <div class="bottom">
-        <p class="login" id="loginBtn" style="cursor:pointer;">Zaloguj się</p>
-        <div class="data">
-            <img class="logo_other" style="height: 20px;" src="images/COI.png">
-            <img class="logo_other" src="images/mc.svg">
-            <p class="version">wersja 4.52.0 (13)</p>
-        </div>
-    </div>
-
-<script>
-(function () {
-    const PASSWORDS = {
-        "haslo123": "2026-01-31",
-        "druzynaA": "2026-02-15",
-        "test2026": "2026-12-31"
-    };
-
-    const SALT = "Twoj_Tajny_Salt_2026";
-
-    function todayISO() {
-        const d = new Date();
-        return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-    }
-
-    function generateOnlineKey() {
-        return btoa(todayISO() + SALT).replace(/=/g, "").substring(0, 12);
-    }
-
-    function isValidPassword(pass) {
-        return PASSWORDS[pass] && todayISO() <= PASSWORDS[pass];
-    }
-
-    const input = document.querySelector(".password_input");
-    const btn = document.querySelector(".login");
-
-    function handleLogin() {
-        const value = input.value.trim();
-
-        if (!value) {
-            alert("Wpisz hasło");
-            return;
-        }
-
-        if (!isValidPassword(value)) {
-            alert("Nieprawidłowe lub wygasłe hasło");
-            return;
-        }
-
-        const url = new URL(window.location.href);
-        url.searchParams.set("online", generateOnlineKey());
-        window.location.href = url.toString();
-    }
-
-    // Obsługa kliknięcia w przycisk
-    btn.addEventListener("click", function(e) {
-        e.preventDefault();
-        handleLogin();
-    });
-
-    // Obsługa kliknięcia Enter w polu hasła
-    input.addEventListener("keypress", function(e) {
-        if (e.key === "Enter") {
-            handleLogin();
-        }
-    });
-
-})();
-
-// Funkcja do pokazywania/ukrywania hasła (ikonka oka)
-function togglePassword() {
-    const input = document.querySelector(".password_input");
-    if (input.type === "password") {
-        input.type = "text";
-    } else {
-        input.type = "password";
-    }
-}
-</script>
-
 </body>
 </html>
