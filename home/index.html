@@ -1,5 +1,4 @@
-<html>
-<head>
+<html><head>
     <title>mObywatel</title>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="css/home.css">
@@ -10,34 +9,7 @@
     <meta name="format-detection" content="telephone=no">
     <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
     <meta name="mobile-web-app-capable" content="yes">
-
-    <!-- 🔐 WERYFIKACJA ONLINE (JEDYNA DODANA RZECZ) -->
-    <script>
-        const params = new URLSearchParams(window.location.search);
-        const online = params.get("online");
-
-        if (online !== "444") {
-            document.addEventListener("DOMContentLoaded", () => {
-                document.body.innerHTML = `
-                    <div style="
-                        display:flex;
-                        justify-content:center;
-                        align-items:center;
-                        height:100vh;
-                        font-family:sans-serif;
-                        text-align:center;
-                    ">
-                        <div>
-                            <h1 style="color:red;">❌ Brak weryfikacji online</h1>
-                            <p>Dokument nieważny</p>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-    </script>
 </head>
-
 <body>
     <div class="bottom_bar">
         <div class="bottom_bar_grid">
@@ -116,5 +88,5 @@
     
     <script src="js/bar.js"></script>
     <script src="js/manifest.js"></script>
-</body>
-</html>
+
+</body></html>
