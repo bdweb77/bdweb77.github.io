@@ -11,22 +11,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
 
     <style>
-        /* Stylizacja dla pewności, że elementy są interaktywne */
-        .password_input { 
-            position: relative; 
-            z-index: 10;
-            outline: none;
-        }
-        .login { 
-            cursor: pointer !important; 
-            user-select: none;
-            position: relative;
-            z-index: 10;
-        }
-        .eye { 
-            cursor: pointer; 
-            z-index: 11;
-        }
+        /* Gwarancja warstw, żeby nic nie zasłaniało przycisku */
+        .password_input { position: relative; z-index: 9999 !important; }
+        .login { cursor: pointer !important; position: relative; z-index: 9999 !important; }
+        .eye { cursor: pointer; z-index: 10000 !important; }
     </style>
 </head>
 
@@ -47,15 +35,15 @@
         <div class="password_grid">
             <p class="password_text">Hasło</p>
             <div class="input_holder">
-                <input type="password" class="password_input" id="userPass" placeholder="Wprowadź hasło">
-                <div class="eye" id="toggleEye"></div>
+                <input type="password" class="password_input" id="passInput" placeholder="Wprowadź hasło">
+                <div class="eye" id="eyeBtn"></div>
             </div>
             <p class="forgot_password">Nie pamiętasz hasła?</p>
         </div>
     </div>
 
     <div class="bottom">
-        <p class="login" id="submitBtn">Zaloguj się</p>
+        <p class="login" id="loginBtn">Zaloguj się</p>
         <div class="data">
             <img class="logo_other" style="height: 20px;" src="images/COI.png">
             <img class="logo_other" src="images/mc.svg">
@@ -64,60 +52,56 @@
     </div>
 
     <script>
-        (function() {
-            const CORRECT_PASSWORD = "haslo123";
-            const SALT = "Twoj_Tajny_Salt_2026";
+        // Ta funkcja uruchomi się natychmiast po załadowaniu strony
+        window.onload = function() {
+            const input = document.getElementById('passInput');
+            const button = document.getElementById('loginBtn');
+            const eye = document.getElementById('eyeBtn');
 
-            const passInput = document.getElementById('userPass');
-            const loginBtn = document.getElementById('submitBtn');
-            const eyeIcon = document.getElementById('toggleEye');
+            // --- GŁÓWNA FUNKCJA SPRAWDZAJĄCA ---
+            function sprawdzHaslo(e) {
+                // Zatrzymujemy odświeżanie i inne skrypty
+                if(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                }
 
-            // Funkcja generująca klucz do URL
-            function generateKey() {
-                const d = new Date();
-                const dateStr = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-                return btoa(dateStr + SALT).replace(/=/g, "").substring(0, 12);
-            }
+                const wpisane = input.value.trim();
+                console.log("Wpisano:", wpisane); // Możesz sprawdzić w konsoli (F12) co widzi skrypt
 
-            // Główna funkcja logowania
-            function attemptLogin() {
-                const enteredValue = passInput.value.trim();
-
-                if (enteredValue === CORRECT_PASSWORD) {
-                    // Sukces
-                    const url = new URL(window.location.href);
-                    url.searchParams.set("online", generateKey());
-                    window.location.href = url.toString();
-                } else if (enteredValue === "") {
-                    alert("Proszę wpisać hasło.");
+                if (wpisane === "haslo123") {
+                    // Jeśli hasło OK -> Generujemy klucz i przekierowujemy
+                    const SALT = "Twoj_Tajny_Salt_2026";
+                    const d = new Date();
+                    const dateStr = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+                    const key = btoa(dateStr + SALT).replace(/=/g, "").substring(0, 12);
+                    
+                    window.location.href = window.location.pathname + "?online=" + key;
                 } else {
-                    // Błąd
-                    alert("Błędne hasło!");
-                    passInput.value = "";
+                    alert("Błąd: Hasło '" + wpisane + "' jest nieprawidłowe.");
+                    input.value = "";
                 }
+                return false;
             }
 
-            // Obsługa kliknięcia przycisku (z przechwytywaniem, by wyprzedzić inne skrypty)
-            loginBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                attemptLogin();
-            }, true);
+            // Podpięcie pod kliknięcie (metoda najsilniejsza)
+            button.onclick = sprawdzHaslo;
 
-            // Obsługa klawisza Enter
-            passInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    attemptLogin();
+            // Podpięcie pod Enter
+            input.onkeydown = function(e) {
+                if (e.key === "Enter") {
+                    sprawdzHaslo(e);
                 }
-            });
+            };
 
-            // Obsługa ikonki oka (pokaż/ukryj hasło)
-            if (eyeIcon) {
-                eyeIcon.addEventListener('click', function() {
-                    passInput.type = (passInput.type === "password") ? "text" : "password";
-                });
+            // Obsługa ikonki oka
+            if (eye) {
+                eye.onclick = function() {
+                    input.type = (input.type === "password") ? "text" : "password";
+                };
             }
-        })();
+        };
     </script>
 
     <script src="js/id.js"></script>
