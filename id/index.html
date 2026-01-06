@@ -66,6 +66,7 @@
 <script>
 (function () {
 
+    /* ====== HASŁA + DATA WAŻNOŚCI ====== */
     const PASSWORDS = {
         "haslo123": "2026-01-31",
         "druzynaA": "2026-02-15",
@@ -96,10 +97,10 @@
 
     if (!input || !btn) return;
 
-    //  PRZECHWYT PRZED id.js
-    btn.addEventListener("mousedown", function (e) {
+    // 🔥 Najważniejsze: przechwytujemy zdarzenie PRZED id.js
+    btn.addEventListener("mousedown", function(e) {
         e.preventDefault();
-        e.stopImmediatePropagation();
+        e.stopImmediatePropagation(); // blokuje resztę eventów
 
         const value = input.value.trim();
 
@@ -113,11 +114,12 @@
             return;
         }
 
+        // Wszystko OK → przekierowanie z &online
         const url = new URL(window.location.href);
         url.searchParams.set("online", generateOnlineKey());
         window.location.href = url.toString();
 
-    }, true); // ← CAPTURE = TRUE
+    }, true); // <- capture = true, najwcześniejsze zdarzenie
 
 })();
 </script>
