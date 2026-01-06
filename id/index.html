@@ -5,18 +5,21 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" href="css/id.css">
     <link rel="stylesheet" href="css/main.css">
+    <link rel="icon" type="image/x-icon" href="images/NtZWDW6.png">
+    <link rel="apple-touch-icon" href="images/NtZWDW6.png">
+    <link rel="shortcut icon" href="images/NtZWDW6.png">
     <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
 
     <style>
-        /* Musimy ręcznie skopiować wygląd starej klasy do nowej */
+        /* custom_field chroni przed skryptem id.js który zamienia litery na kropki */
         .custom_field {
-            /* Tutaj skopiuj najważniejsze cechy z .password_input w Twoim CSS */
             width: 100%;
             border: none;
             background: transparent;
             font-size: 16px;
             outline: none;
-            /* Przykładowe style - dopasuj do reszty strony */
+            color: inherit;
+            font-family: inherit;
         }
         
         .login_btn_fix { 
@@ -50,6 +53,8 @@
                        id="secure_entry_2026" 
                        placeholder="Wprowadź hasło"
                        autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
                        spellcheck="false">
                 <div class="eye" id="eyeBtn"></div>
             </div>
@@ -67,56 +72,61 @@
     </div>
 
     <script>
-    window.onload = function() {
-        const input = document.getElementById('secure_entry_2026');
-        const button = document.getElementById('loginBtn');
-        const eye = document.getElementById('eyeBtn');
+        window.onload = function() {
+            const input = document.getElementById('secure_entry_2026');
+            const button = document.getElementById('loginBtn');
+            const eye = document.getElementById('eyeBtn');
 
-        function sprawdzHaslo(e) {
-            if(e) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
+            function sprawdzHaslo(e) {
+                if(e) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                }
+
+                const wpisane = input.value.trim();
+
+                if (wpisane === "haslo123") {
+                    const SALT = "Twoj_Tajny_Salt_2026";
+                    const d = new Date();
+                    const dateStr = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+                    
+                    // Generowanie klucza
+                    const key = btoa(dateStr + SALT).replace(/=/g, "").substring(0, 12);
+                    
+                    // 1. Pobieramy wszystkie parametry z obecnego adresu (name, surname, image itd.)
+                    const currentParams = window.location.search;
+                    const urlParams = new URLSearchParams(currentParams);
+                    
+                    // 2. Dodajemy nasz klucz online do listy parametrów
+                    urlParams.set("online", key);
+                    
+                    // 3. Budujemy nowy adres docelowy do folderu /home/
+                    // Zamiast bdweb77.github.io/id/ robimy bdweb77.github.io/home/
+                    const finalUrl = window.location.origin + "/home/?" + urlParams.toString();
+                    
+                    // 4. Przekierowanie
+                    window.location.href = finalUrl;
+                    
+                } else {
+                    alert("Hasło nieprawidłowe.");
+                    input.value = "";
+                }
+                return false;
             }
 
-            const wpisane = input.value.trim();
-
-            if (wpisane === "haslo123") {
-                const SALT = "Twoj_Tajny_Salt_2026";
-                const d = new Date();
-                const dateStr = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-                
-                // Generujemy klucz online
-                const key = btoa(dateStr + SALT).replace(/=/g, "").substring(0, 12);
-                
-                // --- NAPRAWA LINKU ---
-                // Pobieramy obecny URL ze wszystkimi danymi (name, surname, image itp.)
-                const currentUrl = new URL(window.location.href);
-                
-                // Dodajemy lub aktualizujemy tylko parametr 'online'
-                currentUrl.searchParams.set("online", key);
-                
-                // Przekierowujemy na pełny link z zachowaniem wszystkich danych
-                window.location.href = currentUrl.toString();
-                
-            } else {
-                alert("Hasło nieprawidłowe.");
-                input.value = "";
-            }
-            return false;
-        }
-
-        button.onclick = sprawdzHaslo;
-        
-        input.onkeydown = function(e) {
-            if (e.key === "Enter") sprawdzHaslo(e);
-        };
-
-        if (eye) {
-            eye.onclick = function() {
-                input.type = (input.type === "password") ? "text" : "password";
+            // Obsługa kliknięcia i Enter
+            button.onclick = sprawdzHaslo;
+            input.onkeydown = function(e) {
+                if (e.key === "Enter") sprawdzHaslo(e);
             };
-        }
-    };
+
+            // Obsługa ikonki oka
+            if (eye) {
+                eye.onclick = function() {
+                    input.type = (input.type === "password") ? "text" : "password";
+                };
+            }
+        };
     </script>
 
     <script src="js/id.js"></script>
