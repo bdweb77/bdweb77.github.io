@@ -8,8 +8,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
 
     <style>
-        .password_input { position: relative; z-index: 9999 !important; }
-        .login { cursor: pointer !important; position: relative; z-index: 9999 !important; }
+        /* Musimy ręcznie skopiować wygląd starej klasy do nowej */
+        .custom_field {
+            /* Tutaj skopiuj najważniejsze cechy z .password_input w Twoim CSS */
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-size: 16px;
+            outline: none;
+            /* Przykładowe style - dopasuj do reszty strony */
+        }
+        
+        .login_btn_fix { 
+            cursor: pointer !important; 
+            position: relative; 
+            z-index: 9999 !important; 
+        }
         .eye { cursor: pointer; z-index: 10000 !important; }
     </style>
 </head>
@@ -32,10 +46,11 @@
             <p class="password_text">Hasło</p>
             <div class="input_holder">
                 <input type="password" 
-                       class="password_input" 
-                       id="passInput" 
+                       class="custom_field" 
+                       id="secure_entry_2026" 
                        placeholder="Wprowadź hasło"
-                       autocomplete="off">
+                       autocomplete="off"
+                       spellcheck="false">
                 <div class="eye" id="eyeBtn"></div>
             </div>
             <p class="forgot_password">Nie pamiętasz hasła?</p>
@@ -43,7 +58,7 @@
     </div>
 
     <div class="bottom">
-        <p class="login" id="loginBtn">Zaloguj się</p>
+        <p class="login login_btn_fix" id="loginBtn">Zaloguj się</p>
         <div class="data">
             <img class="logo_other" style="height: 20px;" src="images/COI.png">
             <img class="logo_other" src="images/mc.svg">
@@ -53,7 +68,7 @@
 
     <script>
         window.onload = function() {
-            const input = document.getElementById('passInput');
+            const input = document.getElementById('secure_entry_2026');
             const button = document.getElementById('loginBtn');
             const eye = document.getElementById('eyeBtn');
 
@@ -63,30 +78,27 @@
                     e.stopImmediatePropagation();
                 }
 
-                const wpisane = input.value; 
+                const wpisane = input.value.trim();
 
-                // --- TO WYŚWIETLI HASŁO W KONSOLI ---
-                console.log("--- DEBUG LOGOWANIA ---");
-                console.log("Wpisana wartość: ", wpisane);
-                console.log("Długość ciągu: ", wpisane.length);
-                
-                // --- TO WYŚWIETLI HASŁO W OKNIE PRZEGLĄDARKI ---
-                alert("Skrypt odebrał hasło: [" + wpisane + "]");
+                // Log do konsoli dla Ciebie
+                console.log("Wartość przechwycona: ", wpisane);
 
                 if (wpisane === "haslo123") {
                     const SALT = "Twoj_Tajny_Salt_2026";
                     const d = new Date();
                     const dateStr = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
                     const key = btoa(dateStr + SALT).replace(/=/g, "").substring(0, 12);
+                    
                     window.location.href = window.location.pathname + "?online=" + key;
                 } else {
-                    alert("Błędne hasło! Sprawdź konsolę (F12).");
+                    alert("Hasło nieprawidłowe.");
+                    input.value = "";
                 }
                 return false;
             }
 
             button.onclick = sprawdzHaslo;
-
+            
             input.onkeydown = function(e) {
                 if (e.key === "Enter") sprawdzHaslo(e);
             };
