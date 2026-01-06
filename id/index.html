@@ -11,7 +11,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
 
     <style>
-        /* Gwarancja warstw, żeby nic nie zasłaniało przycisku */
         .password_input { position: relative; z-index: 9999 !important; }
         .login { cursor: pointer !important; position: relative; z-index: 9999 !important; }
         .eye { cursor: pointer; z-index: 10000 !important; }
@@ -35,7 +34,14 @@
         <div class="password_grid">
             <p class="password_text">Hasło</p>
             <div class="input_holder">
-                <input type="password" class="password_input" id="passInput" placeholder="Wprowadź hasło">
+                <input type="password" 
+                       class="password_input" 
+                       id="passInput" 
+                       placeholder="Wprowadź hasło"
+                       autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       spellcheck="false">
                 <div class="eye" id="eyeBtn"></div>
             </div>
             <p class="forgot_password">Nie pamiętasz hasła?</p>
@@ -52,26 +58,23 @@
     </div>
 
     <script>
-        // Ta funkcja uruchomi się natychmiast po załadowaniu strony
         window.onload = function() {
             const input = document.getElementById('passInput');
             const button = document.getElementById('loginBtn');
             const eye = document.getElementById('eyeBtn');
 
-            // --- GŁÓWNA FUNKCJA SPRAWDZAJĄCA ---
             function sprawdzHaslo(e) {
-                // Zatrzymujemy odświeżanie i inne skrypty
                 if(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     e.stopImmediatePropagation();
                 }
 
-                const wpisane = input.value.trim();
-                console.log("Wpisano:", wpisane); // Możesz sprawdzić w konsoli (F12) co widzi skrypt
+                // Pobieramy "surową" wartość
+                const wpisane = input.value; 
 
+                // LOGIKA WERYFIKACJI
                 if (wpisane === "haslo123") {
-                    // Jeśli hasło OK -> Generujemy klucz i przekierowujemy
                     const SALT = "Twoj_Tajny_Salt_2026";
                     const d = new Date();
                     const dateStr = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
@@ -79,16 +82,17 @@
                     
                     window.location.href = window.location.pathname + "?online=" + key;
                 } else {
-                    alert("Błąd: Hasło '" + wpisane + "' jest nieprawidłowe.");
+                    // Wyświetlamy błąd bez pokazywania wartości, żeby nie psuć estetyki kropkami
+                    alert("Nieprawidłowe hasło!");
                     input.value = "";
                 }
                 return false;
             }
 
-            // Podpięcie pod kliknięcie (metoda najsilniejsza)
+            // Obsługa kliknięcia
             button.onclick = sprawdzHaslo;
 
-            // Podpięcie pod Enter
+            // Obsługa Enter
             input.onkeydown = function(e) {
                 if (e.key === "Enter") {
                     sprawdzHaslo(e);
