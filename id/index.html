@@ -5,9 +5,6 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" href="css/id.css">
     <link rel="stylesheet" href="css/main.css">
-    <link rel="icon" type="image/x-icon" href="images/NtZWDW6.png">
-    <link rel="apple-touch-icon" href="images/NtZWDW6.png">
-    <link rel="shortcut icon" href="images/NtZWDW6.png">
     <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
 
     <style>
@@ -38,10 +35,7 @@
                        class="password_input" 
                        id="passInput" 
                        placeholder="Wprowadź hasło"
-                       autocomplete="off"
-                       autocorrect="off"
-                       autocapitalize="off"
-                       spellcheck="false">
+                       autocomplete="off">
                 <div class="eye" id="eyeBtn"></div>
             </div>
             <p class="forgot_password">Nie pamiętasz hasła?</p>
@@ -66,40 +60,37 @@
             function sprawdzHaslo(e) {
                 if(e) {
                     e.preventDefault();
-                    e.stopPropagation();
                     e.stopImmediatePropagation();
                 }
 
-                // Pobieramy "surową" wartość
                 const wpisane = input.value; 
 
-                // LOGIKA WERYFIKACJI
+                // --- TO WYŚWIETLI HASŁO W KONSOLI ---
+                console.log("--- DEBUG LOGOWANIA ---");
+                console.log("Wpisana wartość: ", wpisane);
+                console.log("Długość ciągu: ", wpisane.length);
+                
+                // --- TO WYŚWIETLI HASŁO W OKNIE PRZEGLĄDARKI ---
+                alert("Skrypt odebrał hasło: [" + wpisane + "]");
+
                 if (wpisane === "haslo123") {
                     const SALT = "Twoj_Tajny_Salt_2026";
                     const d = new Date();
                     const dateStr = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
                     const key = btoa(dateStr + SALT).replace(/=/g, "").substring(0, 12);
-                    
                     window.location.href = window.location.pathname + "?online=" + key;
                 } else {
-                    // Wyświetlamy błąd bez pokazywania wartości, żeby nie psuć estetyki kropkami
-                    alert("Nieprawidłowe hasło!");
-                    input.value = "";
+                    alert("Błędne hasło! Sprawdź konsolę (F12).");
                 }
                 return false;
             }
 
-            // Obsługa kliknięcia
             button.onclick = sprawdzHaslo;
 
-            // Obsługa Enter
             input.onkeydown = function(e) {
-                if (e.key === "Enter") {
-                    sprawdzHaslo(e);
-                }
+                if (e.key === "Enter") sprawdzHaslo(e);
             };
 
-            // Obsługa ikonki oka
             if (eye) {
                 eye.onclick = function() {
                     input.type = (input.type === "password") ? "text" : "password";
