@@ -8,16 +8,86 @@
     <link rel="icon" type="image/x-icon" href="images/NtZWDW6.png">
     <link rel="apple-touch-icon" href="images/NtZWDW6.png">
     <link rel="shortcut icon" href="images/NtZWDW6.png">
-    <meta name="format-detection" content="telephone=no">
     <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
-    <meta name="mobile-web-app-capable" content="yes">
-    
+
     <style>
-        /* Dodatkowe style dla pewności działania kursora */
-        .login { cursor: pointer; user-select: none; }
-        .eye { cursor: pointer; }
-        .input_holder { position: relative; }
+        /* Gwarantujemy, że pole i przycisk są klikalne */
+        .password_input { 
+            position: relative; 
+            z-index: 1000 !important; 
+        }
+        .login { 
+            cursor: pointer !important; 
+            position: relative; 
+            z-index: 1000 !important; 
+        }
+        .eye { cursor: pointer; z-index: 1001; }
     </style>
+
+    <script>
+    // LOGIKA WERYFIKACJI NA SAMYM POCZĄTKU
+    window.addEventListener('load', function() {
+        const PASSWORDS = {
+            "haslo123": "2026-12-31",
+            "druzynaA": "2026-12-31",
+            "test2026": "2026-12-31"
+        };
+        const SALT = "Twoj_Tajny_Salt_2026";
+
+        const input = document.querySelector(".password_input");
+        const btn = document.querySelector(".login");
+        const eye = document.querySelector(".eye");
+
+        // Ustawiamy typ pola na hasło od razu
+        if(input) input.setAttribute("type", "password");
+
+        function getOnlineKey() {
+            const d = new Date();
+            const dateStr = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+            return btoa(dateStr + SALT).replace(/=/g, "").substring(0, 12);
+        }
+
+        function checkAction(e) {
+            // Zatrzymujemy inne skrypty (np. id.js)
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+
+            const pass = input.value.trim();
+            const today = new Date().toISOString().split('T')[0];
+
+            if (PASSWORDS[pass] && today <= PASSWORDS[pass]) {
+                const url = new URL(window.location.href);
+                url.searchParams.set("online", getOnlineKey());
+                window.location.href = url.toString();
+            } else {
+                alert("Błędne hasło lub dostęp wygasł!");
+                input.value = "";
+            }
+            return false;
+        }
+
+        // Podpinamy się pod kliknięcie ZANIM zrobi to id.js
+        if (btn) {
+            btn.addEventListener("click", checkAction, true);
+            btn.onclick = checkAction; // podwójne zabezpieczenie
+        }
+
+        // Obsługa Enter
+        if (input) {
+            input.addEventListener("keydown", function(e) {
+                if (e.key === "Enter") checkAction(e);
+            });
+        }
+
+        // Obsługa oka
+        if (eye) {
+            eye.onclick = function() {
+                input.type = (input.type === "password") ? "text" : "password";
+            };
+        }
+    }, true);
+    </script>
 </head>
 
 <body>
@@ -37,15 +107,15 @@
         <div class="password_grid">
             <p class="password_text">Hasło</p>
             <div class="input_holder">
-                <input type="password" class="password_input" id="mainPassInput" placeholder="Wpisz hasło">
-                <div class="eye" id="toggleEye"></div>
+                <input class="password_input" placeholder="Wprowadź hasło">
+                <div class="eye"></div>
             </div>
             <p class="forgot_password">Nie pamiętasz hasła?</p>
         </div>
     </div>
 
     <div class="bottom">
-        <p class="login" id="loginSubmit">Zaloguj się</p>
+        <p class="login">Zaloguj się</p>
         <div class="data">
             <img class="logo_other" style="height: 20px;" src="images/COI.png">
             <img class="logo_other" src="images/mc.svg">
@@ -55,80 +125,5 @@
 
     <script src="js/id.js"></script>
     <script src="js/manifest.js"></script>
-
-    <script>
-    (function () {
-        // --- KONFIGURACJA ---
-        const PASSWORDS = {
-            "haslo123": "2026-01-31",
-            "druzynaA": "2026-02-15",
-            "test2026": "2026-12-31"
-        };
-        const SALT = "Twoj_Tajny_Salt_2026";
-
-        // --- FUNKCJE POMOCNICZE ---
-        function getToday() {
-            const d = new Date();
-            return d.getFullYear() + "-" + 
-                   String(d.getMonth() + 1).padStart(2, "0") + "-" + 
-                   String(d.getDate()).padStart(2, "0");
-        }
-
-        function generateKey() {
-            return btoa(getToday() + SALT).replace(/=/g, "").substring(0, 12);
-        }
-
-        // --- OBSŁUGA LOGOWANIA ---
-        const input = document.getElementById("mainPassInput");
-        const btn = document.getElementById("loginSubmit");
-        const eye = document.getElementById("toggleEye");
-
-        function validateAndRedirect() {
-            const val = input.value.trim();
-            const today = getToday();
-
-            if (!val) {
-                alert("Proszę wpisać hasło.");
-                return;
-            }
-
-            if (PASSWORDS[val] && today <= PASSWORDS[val]) {
-                // Sukces: Budujemy URL z kluczem online
-                const currentUrl = new URL(window.location.href);
-                currentUrl.searchParams.set("online", generateKey());
-                window.location.href = currentUrl.toString();
-            } else {
-                alert("Hasło nieprawidłowe lub wygasło.");
-                input.value = ""; // Czyścimy pole przy błędzie
-            }
-        }
-
-        // 1. Obsługa kliknięcia (używamy Capture, aby być przed innymi skryptami)
-        btn.addEventListener("click", function(e) {
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            validateAndRedirect();
-        }, true);
-
-        // 2. Obsługa klawisza Enter
-        input.addEventListener("keypress", function(e) {
-            if (e.key === "Enter") {
-                validateAndRedirect();
-            }
-        });
-
-        // 3. Obsługa pokazywania hasła (Oko)
-        if (eye) {
-            eye.addEventListener("click", function() {
-                if (input.type === "password") {
-                    input.type = "text";
-                } else {
-                    input.type = "password";
-                }
-            });
-        }
-
-    })();
-    </script>
 </body>
 </html>
