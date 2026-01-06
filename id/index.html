@@ -11,9 +11,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
     <meta name="mobile-web-app-capable" content="yes">
     <style>
-        /* Gwarantujemy, że przycisk jest klikalny nad wszystkimi warstwami */
-        .login { cursor: pointer !important; position: relative; z-index: 999999 !important; }
-        .password_input { position: relative; z-index: 999998 !important; }
+        /* Gwarantujemy, że nic nie zablokuje kliknięcia w przycisk */
+        .login { 
+            cursor: pointer !important; 
+            position: relative !important; 
+            z-index: 999 !important; 
+        }
+        .password_input {
+            position: relative !important;
+            z-index: 998 !important;
+        }
     </style>
 </head>
 <body>
@@ -30,14 +37,14 @@
         <div class="password_grid">
             <p class="password_text">Hasło</p>
             <div class="input_holder">
-                <input type="password" class="password_input" id="pass_field" autocomplete="off" spellcheck="false">
+                <input type="password" class="password_input" id="input_haslo" autocomplete="off" spellcheck="false">
                 <div class="eye" id="eye_btn"></div>
             </div>
             <p class="forgot_password">Nie pamiętasz hasła?</p>
         </div>
     </div>
     <div class="bottom">
-        <p class="login" id="login_btn">Zaloguj się</p>
+        <p class="login" id="przycisk_zaloguj">Zaloguj się</p>
         <div class="data">
             <img class="logo_other" style="height: 20px;" src="images/COI.png">
             <img class="logo_other" src="images/mc.svg">
@@ -45,70 +52,80 @@
         </div>
     </div>
 
-    <script src="js/id.js" defer></script>
-    <script src="js/manifest.js" defer></script>
+    <script src="js/id.js"></script>
+    <script src="js/manifest.js"></script>
 
     <script>
-    // Uruchamiamy logikę od razu, nie czekając na id.js
     (function() {
-        const passwordInput = document.getElementById('pass_field');
-        const loginButton = document.getElementById('login_btn');
-        const eyeButton = document.getElementById('eye_btn');
+        const inputField = document.getElementById('input_haslo');
+        const loginBtn = document.getElementById('przycisk_zaloguj');
+        const eyeBtn = document.getElementById('eye_btn');
 
-        function startLoginProcess(e) {
-            // Brutalne zatrzymanie innych akcji
+        function wykonajLogowanie(e) {
+            // Blokujemy wszelkie inne akcje (w tym te z id.js)
             if (e) {
                 e.preventDefault();
-                e.stopPropagation();
                 e.stopImmediatePropagation();
             }
 
-            const enteredPass = passwordInput.value.trim();
+            const wpisaneHaslo = inputField.value.trim();
 
-            if (enteredPass === "haslo123") {
+            if (wpisaneHaslo === "haslo123") {
+                // 1. Generowanie klucza online (Data + SALT)
                 const SALT = "Twoj_Tajny_Salt_2026";
                 const d = new Date();
-                const dateStr = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-                const key = btoa(dateStr + SALT).replace(/=/g, "").substring(0, 12);
+                const datePart = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+                const keyOnline = btoa(datePart + SALT).replace(/=/g, "").substring(0, 12);
 
-                // Budowanie parametrów
-                const currentSearch = window.location.search;
-                const params = new URLSearchParams(currentSearch);
-                params.set("online", key);
+                // 2. Pobieramy WSZYSTKIE parametry z aktualnego adresu URL
+                const params = new URLSearchParams(window.location.search);
                 
-                // Tworzymy pełną ścieżkę do /home/
-                const destination = window.location.origin + window.location.pathname.replace(/\/id\/?$/, "/home/") + "?" + params.toString();
-                
-                // Przekierowanie z wymuszeniem odświeżenia strony
-                window.location.assign(destination);
+                // 3. Dodajemy/aktualizujemy parametr online
+                params.set("online", keyOnline);
+
+                // 4. Budujemy nowy adres. Zamiast /id/ idziemy do /home/
+                // Pobieramy bazowy URL bez końcówki /id/
+                const base = window.location.origin + window.location.pathname.split('/').slice(0, -2).join('/') + '/home/';
+                const finalLink = base + "?" + params.toString();
+
+                // 5. Przekierowanie
+                window.location.href = finalLink;
             } else {
-                // Jeśli hasło złe, tylko czyścimy
-                passwordInput.value = "";
+                // Jeśli hasło złe - czyścimy i nic nie robimy
+                inputField.value = "";
             }
             return false;
         }
 
-        // Rejestrujemy zdarzenie na samym początku fazy przechwytywania
-        if (loginButton) {
-            loginButton.onclick = startLoginProcess;
-            loginButton.addEventListener('click', startLoginProcess, true);
+        // Podpinamy się "siłowo" pod kliknięcie (capture: true wyprzedza inne skrypty)
+        if (loginBtn) {
+            loginBtn.addEventListener('click', wykonajLogowanie, true);
         }
 
-        // Obsługa Enter w polu hasła
-        passwordInput.onkeydown = function(e) {
-            if (e.key === "Enter") {
-                startLoginProcess(e);
-            }
-        };
+        // Obsługa Enter
+        if (inputField) {
+            inputField.addEventListener('keydown', function(event) {
+                if (event.key === "Enter") {
+                    wykonajLogowanie(event);
+                }
+            }, true);
+        }
 
         // Obsługa oka
-        if (eyeButton) {
-            eyeButton.onclick = function(e) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                passwordInput.type = (passwordInput.type === "password") ? "text" : "password";
-            };
+        if (eyeBtn) {
+            eyeBtn.addEventListener('click', function(ev) {
+                ev.stopImmediatePropagation();
+                inputField.type = (inputField.type === "password") ? "text" : "password";
+            }, true);
         }
+
+        // Fix na "kropki" - jeśli id.js próbuje psuć pole, wymuszamy typ password
+        inputField.addEventListener('input', function() {
+            if (this.value.includes('•')) {
+                this.value = ""; // Czyścimy jeśli skrypt zewnętrzny próbuje wstawić maskę
+            }
+        });
+
     })();
     </script>
 </body>
