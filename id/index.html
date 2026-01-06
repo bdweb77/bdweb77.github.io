@@ -48,57 +48,6 @@
     <script src="js/id.js"></script>
     <script src="js/manifest.js"></script>
 
-    <!-- ================== WERYFIKACJA DOSTĘPU ================== -->
-    <script>
-        (function () {
-            const SALT = "Twoj_Tajny_Salt_2026"; // ← zmień na własny
-
-            function getTodayKey() {
-                const d = new Date();
-                const date =
-                    d.getFullYear() + "-" +
-                    String(d.getMonth() + 1).padStart(2, "0") + "-" +
-                    String(d.getDate()).padStart(2, "0");
-
-                return btoa(date + SALT).replace(/=/g, "").substring(0, 12);
-            }
-
-            function getParam(name) {
-                return new URLSearchParams(window.location.search).get(name);
-            }
-
-            const urlKey = getParam("online");
-            const todayKey = getTodayKey();
-
-            if (urlKey !== todayKey) {
-                document.documentElement.innerHTML = "";
-                document.body.innerHTML = `
-                    <style>
-                        body {
-                            background:#0f172a;
-                            color:#e5e7eb;
-                            font-family: sans-serif;
-                            display:flex;
-                            justify-content:center;
-                            align-items:center;
-                            height:100vh;
-                            margin:0;
-                        }
-                        .box {
-                            text-align:center;
-                            max-width:400px;
-                        }
-                    </style>
-                    <div class="box">
-                        <h2>Brak dostępu</h2>
-                        <p>Nieprawidłowy lub wygasły link.</p>
-                    </div>
-                `;
-                throw new Error("Access denied");
-            }
-        })();
-    </script>
-
     <!-- ================== GENERATOR LINKU ================== -->
     <script>
         function generateLink() {
