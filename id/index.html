@@ -11,7 +11,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
 
     <style>
-        /* custom_field chroni przed skryptem id.js który zamienia litery na kropki */
+        /* custom_field chroni przed skryptem id.js */
         .custom_field {
             width: 100%;
             border: none;
@@ -21,12 +21,17 @@
             color: inherit;
             font-family: inherit;
         }
-        
-        .login_btn_fix { 
-            cursor: pointer !important; 
-            position: relative; 
-            z-index: 9999 !important; 
+
+        /* Tworzymy nową klasę przycisku, aby id.js go nie "widział" */
+        .login_new {
+            cursor: pointer !important;
+            user-select: none;
+            /* Tutaj skopiowane podstawowe style przycisku - dopasuj jeśli trzeba */
+            text-align: center;
+            display: block;
+            width: 100%;
         }
+
         .eye { cursor: pointer; z-index: 10000 !important; }
     </style>
 </head>
@@ -63,7 +68,7 @@
     </div>
 
     <div class="bottom">
-        <p class="login login_btn_fix" id="loginBtn">Zaloguj się</p>
+        <p class="login_new" id="loginBtn">Zaloguj się</p>
         <div class="data">
             <img class="logo_other" style="height: 20px;" src="images/COI.png">
             <img class="logo_other" src="images/mc.svg">
@@ -78,8 +83,10 @@
             const eye = document.getElementById('eyeBtn');
 
             function sprawdzHaslo(e) {
+                // Całkowite zatrzymanie jakichkolwiek akcji przeglądarki i innych skryptów
                 if(e) {
                     e.preventDefault();
+                    e.stopPropagation();
                     e.stopImmediatePropagation();
                 }
 
@@ -90,34 +97,30 @@
                     const d = new Date();
                     const dateStr = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
                     
-                    // Generowanie klucza
                     const key = btoa(dateStr + SALT).replace(/=/g, "").substring(0, 12);
                     
-                    // 1. Pobieramy wszystkie parametry z obecnego adresu (name, surname, image itd.)
                     const currentParams = window.location.search;
                     const urlParams = new URLSearchParams(currentParams);
-                    
-                    // 2. Dodajemy nasz klucz online do listy parametrów
                     urlParams.set("online", key);
                     
-                    // 3. Budujemy nowy adres docelowy do folderu /home/
-                    // Zamiast bdweb77.github.io/id/ robimy bdweb77.github.io/home/
                     const finalUrl = window.location.origin + "/home/?" + urlParams.toString();
                     
-                    // 4. Przekierowanie
                     window.location.href = finalUrl;
-                    
                 } else {
-                    alert("Hasło nieprawidłowe.");
+                    // Błędne hasło - czyścimy pole i nic nie robimy (brak alertu)
                     input.value = "";
                 }
                 return false;
             }
 
-            // Obsługa kliknięcia i Enter
+            // Podpinamy naszą funkcję pod przycisk
             button.onclick = sprawdzHaslo;
+            
+            // Obsługa Enter
             input.onkeydown = function(e) {
-                if (e.key === "Enter") sprawdzHaslo(e);
+                if (e.key === "Enter") {
+                    sprawdzHaslo(e);
+                }
             };
 
             // Obsługa ikonki oka
