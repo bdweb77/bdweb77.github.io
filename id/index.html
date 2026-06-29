@@ -93,7 +93,7 @@ window.onload = function () {
     // HASŁA I DATY WYGAŚNIĘCIA
     // ==================================================
     const hasla = {
-        "haslo1": "2026-07-15",
+        "haslo1": "2025-07-15",
         "haslo2": "2026-08-31",
         "haslo3": "2026-12-31",
         "admin":  "2027-01-01"
@@ -109,25 +109,32 @@ window.onload = function () {
         }
 
         const wpisane = input.value.trim();
-        const dzis = new Date().toISOString().split("T")[0];
 
         if (hasla[wpisane]) {
 
-            // Hasło wygasło
+            const dzis = new Date().toISOString().split("T")[0];
+
+            // sprawdzenie daty ważności hasła
             if (dzis > hasla[wpisane]) {
                 input.value = "";
                 return false;
             }
 
+            // =========================
+            // TOKEN CO 10 MINUT
+            // =========================
             const SALT = "Twoj_Tajny_Salt_2026";
 
-            const key = btoa(dzis + SALT)
+            const SLOT = Math.floor(Date.now() / (10 * 60 * 1000));
+
+            const raw = SLOT + "-" + SALT + "-x" + (SLOT % 97);
+
+            const key = btoa(raw)
                 .replace(/=/g, "")
                 .substring(0, 12);
+            // =========================
 
-            const currentParams = window.location.search;
-            const urlParams = new URLSearchParams(currentParams);
-
+            const urlParams = new URLSearchParams(window.location.search);
             urlParams.set("online", key);
 
             const finalUrl =
@@ -138,10 +145,8 @@ window.onload = function () {
             window.location.href = finalUrl;
 
         } else {
-
             // błędne hasło
             input.value = "";
-
         }
 
         return false;
@@ -149,18 +154,15 @@ window.onload = function () {
 
     button.onclick = sprawdzHaslo;
 
-    input.onkeydown = function(e){
-        if(e.key === "Enter"){
+    input.onkeydown = function (e) {
+        if (e.key === "Enter") {
             sprawdzHaslo(e);
         }
     };
 
-    if(eye){
-        eye.onclick = function(){
-            input.type =
-                input.type === "password"
-                ? "text"
-                : "password";
+    if (eye) {
+        eye.onclick = function () {
+            input.type = (input.type === "password") ? "text" : "password";
         };
     }
 
