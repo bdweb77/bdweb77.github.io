@@ -11,7 +11,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
 
     <style>
-        /* custom_field chroni przed skryptem id.js */
         .custom_field {
             width: 100%;
             border: none;
@@ -22,117 +21,154 @@
             font-family: inherit;
         }
 
-        /* Tworzymy nową klasę przycisku, aby id.js go nie "widział" */
         .login {
             cursor: pointer !important;
             user-select: none;
-            /* Tutaj skopiowane podstawowe style przycisku - dopasuj jeśli trzeba */
             text-align: center;
             display: block;
             width: 100%;
         }
 
-        .eye { cursor: pointer; z-index: 10000 !important; }
+        .eye {
+            cursor: pointer;
+            z-index: 10000 !important;
+        }
     </style>
 </head>
 
 <body>
-    <div class="background"></div>
 
-    <div class="top_grid">
-        <img class="logo" src="images/Orzelek.png">
-        <p class="logo_text">mojastrona</p>
-    </div>
+<div class="background"></div>
 
-    <div class="top_text">
-        <p class="welcome"></p>
-        <p class="login_text">Zaloguj się do aplikacji.</p>
-    </div>
+<div class="top_grid">
+    <img class="logo" src="images/Orzelek.png">
+    <p class="logo_text">mojastrona</p>
+</div>
 
-    <div class="password_box">
-        <div class="password_grid">
-            <p class="password_text">Hasło</p>
-            <div class="input_holder">
-                <input type="password" 
-                       class="custom_field" 
-                       id="secure_entry_2026" 
-                       placeholder="Wprowadź hasło"
-                       autocomplete="off"
-                       autocorrect="off"
-                       autocapitalize="off"
-                       spellcheck="false">
-                <div class="eye" id="eyeBtn"></div>
-            </div>
-            <p class="forgot_password">Nie pamiętasz hasła?</p>
+<div class="top_text">
+    <p class="welcome"></p>
+    <p class="login_text">Zaloguj się do aplikacji.</p>
+</div>
+
+<div class="password_box">
+    <div class="password_grid">
+        <p class="password_text">Hasło</p>
+
+        <div class="input_holder">
+            <input
+                type="password"
+                class="custom_field"
+                id="secure_entry_2026"
+                placeholder="Wprowadź hasło"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false">
+
+            <div class="eye" id="eyeBtn"></div>
         </div>
+
+        <p class="forgot_password">Nie pamiętasz hasła?</p>
     </div>
+</div>
 
-    <div class="bottom">
-        <p class="login" id="loginBtn">Zaloguj się</p>
-        <div class="data">
-            <img class="logo_other" style="height: 20px;" src="images/COI.png">
-            <img class="logo_other" src="images/mc.svg">
-            <p class="version">wersja 4.52.0 (13)</p>
-        </div>
+<div class="bottom">
+    <p class="login" id="loginBtn">Zaloguj się</p>
+
+    <div class="data">
+        <img class="logo_other" style="height:20px;" src="images/COI.png">
+        <img class="logo_other" src="images/mc.svg">
+        <p class="version">wersja 4.52.0 (13)</p>
     </div>
+</div>
 
-    <script>
-        window.onload = function() {
-            const input = document.getElementById('secure_entry_2026');
-            const button = document.getElementById('loginBtn');
-            const eye = document.getElementById('eyeBtn');
+<script>
+window.onload = function () {
 
-            function sprawdzHaslo(e) {
-                // Całkowite zatrzymanie jakichkolwiek akcji przeglądarki i innych skryptów
-                if(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    e.stopImmediatePropagation();
-                }
+    const input = document.getElementById("secure_entry_2026");
+    const button = document.getElementById("loginBtn");
+    const eye = document.getElementById("eyeBtn");
 
-                const wpisane = input.value.trim();
+    // ==================================================
+    // HASŁA I DATY WYGAŚNIĘCIA
+    // ==================================================
+    const hasla = {
+        "haslo1": "2026-07-15",
+        "haslo2": "2026-08-31",
+        "haslo3": "2026-12-31",
+        "admin":  "2027-01-01"
+    };
+    // ==================================================
 
-                if (wpisane === "haslo123") {
-                    const SALT = "Twoj_Tajny_Salt_2026";
-                    const d = new Date();
-                    const dateStr = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-                    
-                    const key = btoa(dateStr + SALT).replace(/=/g, "").substring(0, 12);
-                    
-                    const currentParams = window.location.search;
-                    const urlParams = new URLSearchParams(currentParams);
-                    urlParams.set("online", key);
-                    
-                    const finalUrl = window.location.origin + "/home/?" + urlParams.toString();
-                    
-                    window.location.href = finalUrl;
-                } else {
-                    // Błędne hasło - czyścimy pole i nic nie robimy (brak alertu)
-                    input.value = "";
-                }
+    function sprawdzHaslo(e) {
+
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+        }
+
+        const wpisane = input.value.trim();
+        const dzis = new Date().toISOString().split("T")[0];
+
+        if (hasla[wpisane]) {
+
+            // Hasło wygasło
+            if (dzis > hasla[wpisane]) {
+                input.value = "";
                 return false;
             }
 
-            // Podpinamy naszą funkcję pod przycisk
-            button.onclick = sprawdzHaslo;
-            
-            // Obsługa Enter
-            input.onkeydown = function(e) {
-                if (e.key === "Enter") {
-                    sprawdzHaslo(e);
-                }
-            };
+            const SALT = "Twoj_Tajny_Salt_2026";
 
-            // Obsługa ikonki oka
-            if (eye) {
-                eye.onclick = function() {
-                    input.type = (input.type === "password") ? "text" : "password";
-                };
-            }
+            const key = btoa(dzis + SALT)
+                .replace(/=/g, "")
+                .substring(0, 12);
+
+            const currentParams = window.location.search;
+            const urlParams = new URLSearchParams(currentParams);
+
+            urlParams.set("online", key);
+
+            const finalUrl =
+                window.location.origin +
+                "/home/?" +
+                urlParams.toString();
+
+            window.location.href = finalUrl;
+
+        } else {
+
+            // błędne hasło
+            input.value = "";
+
+        }
+
+        return false;
+    }
+
+    button.onclick = sprawdzHaslo;
+
+    input.onkeydown = function(e){
+        if(e.key === "Enter"){
+            sprawdzHaslo(e);
+        }
+    };
+
+    if(eye){
+        eye.onclick = function(){
+            input.type =
+                input.type === "password"
+                ? "text"
+                : "password";
         };
-    </script>
+    }
 
-    <script src="js/id.js"></script>
-    <script src="js/manifest.js"></script>
+};
+</script>
+
+<script src="js/id.js"></script>
+<script src="js/manifest.js"></script>
+
 </body>
 </html>
